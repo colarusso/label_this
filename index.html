@@ -307,7 +307,7 @@
 			  }
 
 			  record = self.items[0]['id'];
-				text = table[0]["fields"]["text"]
+				text = table[0]["fields"]["full_text"]
 
 			  $("#label").html(label);
 			  $("#front_content").html(text);
@@ -361,11 +361,11 @@
 		apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
 
 		if (up==1) {
-			write_this = 1;
+			write_this = "1";
 		} else if (down==1) {
-			write_this = 0;
+			write_this = "0";
 		} else {
-			write_this = null
+			write_this = ""
 		}
 
 		last = (new Date).getTime();
