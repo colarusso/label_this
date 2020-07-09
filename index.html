@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html;charset=UTF-8"/>
+
+	<!-- mobile client meta data -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<link rel="apple-touch-icon" href="style/images/icon.png"/>
+
+	<title>Label Texts</title>
+	<meta property="og:type" content="website"/>
+	<meta property="og:title" content="Custom \"Smart\" Flashcards"/>
+	<meta property="og:description" content="A tool for serving and ordering flashcards based on how well you've memorized their content."/>
+
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:site" content="@Colarusso">
+	<meta name="twitter:creator" content="@Colarusso">
+	<meta name="twitter:title" content="Custom \"Smart\" Flashcards">
+	<meta name="twitter:description" content="A tool for serving and ordering flashcards based on how well you've memorized their content.">
+
+	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+	<!-- jQuery Mobile scripts and style Sheets -->
+	<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+	<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+	<script>
+    	$(document).on("mobileinit", function () {
+        	$.mobile.hashListeningEnabled = false;
+        	$.mobile.pushStateEnabled = false;
+    	});
+	</script>
+	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel="stylesheet" href="style/custom.min.0.1.css" />
+
+	<!-- jQuery settings -->
+	<script type="text/javascript">
+		// set default transition
+		$.mobile.defaultPageTransition = 'slide';
+		$(document).ready(function() {
+			// avoid caching ajax pages in jquery
+			$.ajaxSetup({ cache: false });
+			$.mobile.activeBtnClass = 'unused';
+		});
+	</script>
+
+	<style>
+		.card {
+			font-size:20px;
+			text-align:left;
+			min-height: calc(100vh - 115px);
+		}
+	</style>
+
+</head>
+<body id="body" onLoad="loadCookies();">
+
+<div data-role="page" id="settings">
+	<div data-role="header" data-id="myheader" data-theme="b">
+		<a href="#info" data-iconpos="notext" data-icon="info" data-transition="slide" data-direction="reverse"></a>
+		<h1>Settings</h1>
+		<a href="#" onClick="saveCookies();i = 0;load_card('front','slide')" data-iconpos="notext" data-icon="home" data-transition="slide" class="ui-btn-right"></a>
+	</div><!-- /header -->
+	<div id="settings_content" data-role="content" style="text-align:left;" >
+		<b>API Key</b> <input id="key" type=text value="">
+		<b>Base ID</b> <input id="base" type=text value="">
+		<b>Table Name</b> <input id="table" type=text value="">
+		<input type=button value="Save &amp; Sync" onClick="saveCookies();i = 0;load_card('front','slide')">
+	</div>
+</div>
+
+<div data-role="page" id="front">
+	<div class="ui-header ui-bar-b" data-role="header" data-id="myheader" data-theme="b">
+		<a href="#settings" class="ui-link ui-btn-left ui-btn ui-icon-gear ui-btn-icon-notext ui-shadow ui-corner-all" data-iconpos="notext" data-icon="gear" data-direction="reverse" data-transition="slide"></a>
+		<h1 class="ui-title"><span id="label">Loading...</span>?</h1>
+		<a href="https://taxonomy.legal/" target="_blank" data-iconpos="notext" data-icon="tag" data-transition="slide" class="ui-btn-right"></a>
+	</div>
+	<div id="front_content" data-role="content" class="card ui-content">
+	</div>
+	<div id="myfooter" data-role="footer" data-id="myfooter" data-position="fixed" data-tap-toggle="false" class="nav-glyphish-example" style="display:box;" data-theme="b">
+		<div data-role="navbar" data-grid="b">
+			<ul>
+				<li><a href="#" id="voteup" data-icon="custom" onClick="write_card(1,0);">Yes</a></li>
+				<li><a href="#" id="votedown" data-icon="custom" onClick="write_card(0,1);">No</a></li>
+				<li><a href="#" id="skip" data-icon="arrow-r" onClick="write_card(0,0);">Skip</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div data-role="page" id="info">
+	<div data-role="header" data-id="myheader" data-theme="b">
+		<h1>About</h1>
+		<a href="#settings" data-iconpos="notext" data-icon="carat-r" data-transition="slide" class="ui-btn-right"></a>
+	</div>
+	<div id="settings_content" data-role="content" style="text-align:left;" >
+		<h3>Overview</h3>
+		This web app turns spreadsheets into virtual flashcards. All you have to do is: (1) make a spreadsheet with columns for the "front" and "back" of your cards; (2) add your content as rows to the sheet; (2) link that sheet to the web app; and (3) work your way through the cards. You can find more context and instructions in the <a href="https://github.com/colarusso/flashcards/blob/master/README.md#context--backstory" target="_blank">README</a> file for this project's <a href="https://github.com/colarusso/flashcards" target="_blank">GitHub repo</a>.
+		<h3>Credits</h3>
+		<p>This tool was designed and built by <a href="https://twitter.com/colarusso" target="_blank">@Colarusso</a>.</p>
+		<p> The thumbs up and arrow buttons you see when "voting," as well as in the homescreen icon, are the work of <a href="https://thenounproject.com/term/thumb-up/83151/" target="_blank">Antar</a>, <a href="https://thenounproject.com/term/arrow/37752/" target="_blank">Julien Miclo</a>, and <a href="https://thenounproject.com/term/e-learning/62522" target="_blank">Attilio Baghino</a> over at the Noun Project.
+		</p>
+		<h3>Privacy</h3>
+		<p>
+		We make use of Google Analytics to track visitor statistics, this includes the use of cookies. See <a href="https://policies.google.com/technologies/partner-sites">How Google uses data when you use our partner's sites or apps</a> (e.g., this site). We do not track the content of your spreadsheets. However, that data is stored with Airtable, and your use of Airtable is subject to their terms of service. Additionally, this site is hosted as a GitHub Page and presumably GitHub maintains associated server logs.
+		</p>
+	</div>
+</div>
+
+
+<!-- Include Dependency Scripts -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"></script>
+
+<script type="text/javascript" src="js_bin/nsmi.js"></script>
+
+<script type="text/javascript">
+
+	var debug = 1;
+
+	var work = 0;
+	var table
+	var record = "";
+	var level = 0;
+	var level_0_i = 0;
+	var level_1_i = 0;
+	var level_2_i = 0;
+	var level_3_i = 0;
+  var label = NSMI["labels"][level_0_i]["name"];
+	var code = NSMI["labels"][level_0_i]["id"];
+
+	var i = 0;
+	var afew = (new Date).getTime();
+
+	function createCookie(name,value,days) {
+		if (days) {
+			var date = new Date();
+			date.setTime(date.getTime()+(days*24*60*60*1000));
+			var expires = "; expires="+date.toGMTString();
+		}
+		else var expires = "";
+		document.cookie = name+"="+value+expires+"; path=/";
+	}
+
+	function readCookie(name) {
+		var nameEQ = name + "=";
+		var ca = document.cookie.split(';');
+		for(var i=0;i < ca.length;i++) {
+			var c = ca[i];
+			while (c.charAt(0)==' ') c = c.substring(1,c.length);
+			if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+		}
+		return null;
+	}
+
+	function loadCookies() {
+		if (readCookie("key")) {
+			$("#key").val(readCookie("key"));
+		}
+		if (readCookie("base")) {
+			$("#base").val(readCookie("base"));
+		}
+		if (readCookie("table")) {
+			$("#table").val(readCookie("table"));
+		}
+	}
+
+	function saveCookies() {
+		key = $("#key").val().trim();
+		base = $("#base").val().trim();
+		table = $("#table").val().trim();
+		createCookie("key",key,365*100);
+		createCookie("base",base,365*100);
+		createCookie("table",table,365*100);
+	}
+
+
+	function check_written(last,write_this=null) {
+		if (work == 0) {
+			load_card("front","slideup");
+		} else if (work == 1) {
+			if ($.mobile.loading().is(':hidden')) {
+				$.mobile.loading("show");
+			}
+			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/?filterByFormula=AND((RECORD_ID() = '"+record+"'),({last}<='"+last+"'))"
+			axios.get(
+				apicall,
+        {
+            headers: { Authorization: "Bearer "+ app_key }
+        }
+      ).then(function(response){
+			if (debug==1) {
+			  console.log("---Write Check---");
+			  console.log(apicall);
+			}
+			if (response.data.records[0] != undefined) {
+				if (debug==1) {
+				  console.log("Write Check: Pass");
+				  console.log(response);
+				}
+				work = 0;
+
+				var load_next = 0;
+
+				if(write_this==null) {
+					write_this = 0;
+				}
+
+				if (level == 0 && load_next == 0) {
+					if (write_this==0 && Boolean(NSMI["labels"][level_0_i + 1])) {
+						level_0_i += 1;
+						label = NSMI["labels"][level_0_i]["name"];
+						code = NSMI["labels"][level_0_i]["id"];
+					} else if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"])) {
+						level = 1;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["name"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["id"];
+					} else if (write_this==1 && Boolean(NSMI["labels"][level_0_i + 1])) {
+						level_0_i += 1;
+						label = NSMI["labels"][level_0_i]["name"];
+						code = NSMI["labels"][level_0_i]["id"];
+					} else {
+						load_next = 1;
+					}
+				}
+
+				if (level == 1) {
+					level_1_i = 0;
+				}
+
+				if (level == 2) {
+					level_2_i = 0;
+				}
+
+				if (level == 3) {
+					level_3_i = 0;
+				}
+
+
+				if (load_next==1) {
+					load_api_data("#front")
+				} else {
+					$("#label").html(label);
+					$.mobile.loading("hide");
+				}
+				//check_written();
+			} else {
+				if (debug==1) {
+					console.log("Write Check: Pending");
+					console.log(response);
+				}
+				setTimeout(function () {
+					check_written(last,write_this);
+				}, 100);
+			  }
+      }).catch(function(error){
+      	console.log(error)
+      	//work = -1;
+        alert("There was a problem contacting your Airtable. ("+error+")");
+      	$.mobile.loading("hide");
+				check_written(last,write_this);
+      })
+		}
+	}
+
+	function load_api_data(target) {
+		level = 0;
+		level_0_i = 0;
+		level_1_i = 0;
+		level_2_i = 0;
+		level_3_i = 0;
+		label = NSMI["labels"][level_0_i]["name"];
+		code = NSMI["labels"][level_0_i]["id"];
+
+		var r = $.Deferred();
+
+		app_id = $("#base").val().trim();
+		app_key = $("#key").val().trim();
+		table = $("#table").val().trim();
+		work = 1;
+
+		if (target == "#front") {
+			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/?filterByFormula=AND({last}=Blank())&limit=1";
+		}
+
+		axios.get(
+			 apicall,
+	    {
+	        headers: { Authorization: "Bearer "+ app_key }
+	    }
+    ).then(function(response){
+  	  self.items = response.data.records;
+			table = self.items;
+
+			if (table.length == 0) {
+				alert("All texts have been labeled. Please ask for more.");
+				work = -1;
+				$.mobile.loading("hide");
+				afew = (new Date).getTime();
+				$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
+			} else {
+				if (debug==1) {
+			  	console.log("---Load Card---");
+			  	console.log(apicall);
+					console.log("ID: "+self.items[0]['id']);
+					console.log(self.items);
+			  }
+
+			  record = self.items[0]['id'];
+				text = table[0]["fields"]["text"]
+
+			  $("#label").html(label);
+			  $("#front_content").html(text);
+
+			  work = 0;
+				$.mobile.loading("hide");
+			}
+
+    }).catch(function(error){
+			console.log(error);
+			if (error.response.status == 422) {
+		        alert("Make sure your table has the following columns: id, text, and some subset of the NSMIv2 codes. ("+error+")");
+			} else {
+		        alert("Make sure your key and base info are correct. ("+error+")");
+			}
+			work = -1;
+			$.mobile.loading("hide");
+			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
+    })
+    return r;
+	}
+
+
+	function load_card(side,transition) {
+		if ($("#key").val() && $("#base").val() && $("#table").val()) {
+				load_api_data("#"+side).done( go_to(side,transition) ); // h/t https://multiplestates.wordpress.com/2014/12/04/calling-one-jquery-function-only-after-another-function-has-run/
+		} else {
+			alert("You can't leave any of these fields blank.");
+		}
+	}
+
+	function go_to(side,transition) {
+		if (work == 0) {
+			$.mobile.changePage($('#'+side), { transition: transition})
+		} else if (work == 1) {
+			if ($.mobile.loading().is(':hidden')) {
+				$.mobile.loading("show");
+			}
+			setTimeout(function () {
+      	go_to(side,transition);
+    	}, 1);
+		} else {
+			work = 0;
+		}
+	}
+
+	function write_card(up,down) {
+		app_id = $("#base").val().trim();
+		app_key = $("#key").val().trim();
+		table = $("#table").val().trim();
+		apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
+
+		if (up==1) {
+			write_this = 1;
+		} else if (down==1) {
+			write_this = 0;
+		} else {
+			write_this = null
+		}
+
+		last = (new Date).getTime();
+
+		work = 1;
+
+		console.log(record,code,write_this,last);
+
+		axios.patch(
+		 	apicall,
+			{  "fields": {  [code] : write_this, "last": last } },
+      {
+          headers: { Authorization: "Bearer "+ app_key}
+      }
+    ).then(function(response){
+			if (debug==1) {
+				console.log("---Write Data---");
+				console.log(apicall);
+				console.log(response);
+			}
+			check_written(last,write_this);
+    }).catch(function(error){
+    	console.log(error)
+      alert("There was a problem writing to your Airtable. ("+error+")");
+			$.mobile.loading("hide");
+			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
+			//check_written(last,write_this);
+    })
+	}
+
+
+</script>
+
+</body>
+</html>
