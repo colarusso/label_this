@@ -74,7 +74,7 @@
 	<div class="ui-header ui-bar-b" data-role="header" data-id="myheader" data-theme="b">
 		<a href="#settings" class="ui-link ui-btn-left ui-btn ui-icon-gear ui-btn-icon-notext ui-shadow ui-corner-all" data-iconpos="notext" data-icon="gear" data-direction="reverse" data-transition="slide"></a>
 		<h1 class="ui-title"><span id="label">Loading...</span>?</h1>
-		<a href="https://taxonomy.legal/" target="_blank" data-iconpos="notext" data-icon="tag" data-transition="slide" class="ui-btn-right"></a>
+		<a id="tag" href="https://taxonomy.legal/" target="_blank" data-iconpos="notext" data-icon="tag" data-transition="slide" class="ui-btn-right"></a>
 	</div>
 	<div id="front_content" data-role="content" class="card ui-content">
 	</div>
@@ -118,9 +118,12 @@
 
 	var debug = 1;
 
+	var fivehundreth = "MO-12-01-05-00";
+
 	var work = 0;
 	var table
 	var record = "";
+	var record_2 = "";
 	var level = 0;
 	var level_0_i = 0;
 	var level_1_i = 0;
@@ -128,6 +131,8 @@
 	var level_3_i = 0;
   var label = NSMI["labels"][level_0_i]["Title"];
 	var code = NSMI["labels"][level_0_i]["Code"];
+
+	var text_id = "";
 
 	var i = 0;
 	var afew = (new Date).getTime();
@@ -183,14 +188,15 @@
 				$.mobile.loading("show");
 			}
 
-			if (code <= "MO-12-01-05-00"){
+			if (code <= fivehundreth){
 				table = $("#table").val().trim() + "_1";
 			} else {
 				table = $("#table").val().trim() + "_2";
 			}
-			console.log("write:"+table);
+			console.log("check:"+table);
 
-			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/?filterByFormula=AND((RECORD_ID() = '"+record+"'),({last}<='"+last+"'))"
+			//apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/?filterByFormula=AND((RECORD_ID() = '"+record+"'),({last}<='"+last+"'))"
+			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/?filterByFormula=AND(({_id} = '"+text_id+"'),({last}<='"+last+"'))"
 			axios.get(
 				apicall,
         {
@@ -209,21 +215,20 @@
 				work = 0;
 
 				var load_next = 0;
+				var fresh_pass = 1;
 
 				if(write_this==null) {
 					write_this = 0;
 				}
 
-				if (level == 0 && load_next == 0) {
-					if (write_this==0 && Boolean(NSMI["labels"][level_0_i + 1])) {
-						level_0_i += 1;
-						label = NSMI["labels"][level_0_i]["Title"];
-						code = NSMI["labels"][level_0_i]["Code"];
-					} else if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"])) {
+				if (level == 0 /*&& load_next == 0*/) {
+					if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"])) {
 						level = 1;
+						level_1_i = 0;
+						fresh_pass = 0;
 						label = NSMI["labels"][level_0_i]["children"][level_1_i]["Title"];
 						code = NSMI["labels"][level_0_i]["children"][level_1_i]["Code"];
-					} else if (write_this==1 && Boolean(NSMI["labels"][level_0_i + 1])) {
+					} else if (Boolean(NSMI["labels"][level_0_i + 1])) {
 						level_0_i += 1;
 						label = NSMI["labels"][level_0_i]["Title"];
 						code = NSMI["labels"][level_0_i]["Code"];
@@ -232,18 +237,97 @@
 					}
 				}
 
-				if (level == 1) {
-					level_1_i = 0;
+				if (level == 1 && fresh_pass==1) {
+					if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"])) {
+						level = 2;
+						level_2_i = 0;
+						fresh_pass = 0;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Code"];
+					} else if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i + 1])) {
+						level_1_i += 1;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["Code"];
+					} else {
+						level = 0;
+						if (Boolean(NSMI["labels"][level_0_i + 1])) {
+							level_0_i += 1;
+							label = NSMI["labels"][level_0_i]["Title"];
+							code = NSMI["labels"][level_0_i]["Code"];
+						} else {
+							load_next = 1;
+						}
+					}
 				}
 
-				if (level == 2) {
-					level_2_i = 0;
+				if (level == 2 && fresh_pass==1) {
+					if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"])) {
+						level = 3;
+						level_3_i = 0;
+						fresh_pass = 0;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Code"];
+					} else if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i + 1])) {
+						level_2_i += 1;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Code"];
+					} else {
+						level = 1;
+						if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i + 1])) {
+							level_1_i += 1;
+							label = NSMI["labels"][level_0_i]["children"][level_1_i]["Title"];
+							code = NSMI["labels"][level_0_i]["children"][level_1_i]["Code"];
+						} else {
+							level = 0;
+							if (Boolean(NSMI["labels"][level_0_i + 1])) {
+								level_0_i += 1;
+								label = NSMI["labels"][level_0_i]["Title"];
+								code = NSMI["labels"][level_0_i]["Code"];
+							} else {
+								load_next = 1;
+							}
+						}
+					}
 				}
 
-				if (level == 3) {
-					level_3_i = 0;
+				if (level == 3 && fresh_pass==1) {
+					if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i + 1])) {
+						level_3_i += 1;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Code"];
+					} else {
+						level = 2;
+						if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i + 1])) {
+							level_2_i += 1;
+							label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Title"];
+							code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Code"];
+						} else {
+							level = 1;
+							if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i + 1])) {
+								level_1_i += 1;
+								label = NSMI["labels"][level_0_i]["children"][level_1_i]["Title"];
+								code = NSMI["labels"][level_0_i]["children"][level_1_i]["Code"];
+							} else {
+								level = 0;
+								if (Boolean(NSMI["labels"][level_0_i + 1])) {
+									level_0_i += 1;
+									label = NSMI["labels"][level_0_i]["Title"];
+									code = NSMI["labels"][level_0_i]["Code"];
+								} else {
+									load_next = 1;
+								}
+							}
+						}
+					}
 				}
 
+				$('#tag').attr("href", "https://taxonomy.legal/term/"+code);
+
+				if (debug==1) {
+					console.log("Level indices: "+level_0_i, level_1_i, level_2_i, level_3_i)
+				}
+
+				$("#label").html(label);
 
 				if (load_next==1) {
 					load_api_data("#front")
@@ -271,6 +355,40 @@
 		}
 	}
 
+	function get_record(text_id,table) {
+
+		var r = $.Deferred();
+
+		apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/?filterByFormula=AND(({_id} = '"+text_id+"'))" // call to get record id
+		console.log("record: ",apicall);
+
+		axios.get(
+			 apicall,
+			{
+					headers: { Authorization: "Bearer "+ app_key }
+			}
+		).then(function(response){
+				self.items = response.data.records;
+				record_2 = self.items[0]['id'];
+				console.log("record: ",record_2);
+				work = 0;
+				$.mobile.loading("hide");
+
+		}).catch(function(error){
+			console.log(error);
+			if (error.response.status == 422) {
+						alert("Make sure your table has the following columns: id, text, and some subset of the NSMIv2 codes. ("+error+")");
+			} else {
+						alert("Make sure your key and base info are correct. ("+error+")");
+			}
+			work = -1;
+			$.mobile.loading("hide");
+			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
+		})
+		return r;
+	}
+
+
 	function load_api_data(target) {
 		level = 0;
 		level_0_i = 0;
@@ -279,6 +397,7 @@
 		level_3_i = 0;
 		label = NSMI["labels"][level_0_i]["Title"];
 		code = NSMI["labels"][level_0_i]["Code"];
+		$('#tag').attr("href", "https://taxonomy.legal/term/"+code);
 
 		var r = $.Deferred();
 
@@ -315,7 +434,9 @@
 			  }
 
 			  record = self.items[0]['id'];
+				text_id = table[0]["fields"]["_id"]
 				text = table[0]["fields"]["full_text"]
+				get_record(text_id,$("#table").val().trim() + "_2");
 
 			  $("#label").html(label);
 			  $("#front_content").html(text);
@@ -366,14 +487,19 @@
 		app_id = $("#base").val().trim();
 		app_key = $("#key").val().trim();
 
-		if (code <= "MO-12-01-05-00"){
+		last = (new Date).getTime();
+		//get_record(text_id,table);
+
+		if (code <= fivehundreth){
 			table = $("#table").val().trim() + "_1";
+			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
 		} else {
 			table = $("#table").val().trim() + "_2";
+			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record_2;
 		}
-		console.log("write:"+table);
+		console.log("write:"+table,text_id);
 
-		apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
+
 
 		if (up==1) {
 			write_this = "1";
@@ -383,11 +509,9 @@
 			write_this = ""
 		}
 
-		last = (new Date).getTime();
-
 		work = 1;
 
-		console.log(record,code,write_this,last);
+		console.log(table,record,code,write_this,last,apicall);
 
 		axios.patch(
 		 	apicall,
