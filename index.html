@@ -42,6 +42,20 @@
 			// avoid caching ajax pages in jquery
 			$.ajaxSetup({ cache: false });
 			$.mobile.activeBtnClass = 'unused';
+
+			$('#read2me').change(function(){
+		    if(this.checked) {
+		        $(t2s).show();
+		    } else {
+		        $(t2s).hide();
+		    }
+			});
+
+			$("#front").on("pageshow", function() {
+				if (readCookie("read")=="true") {
+    			talk($('#front_content').val()+'\nDo you see the following issues? '+label+"?");
+				}
+			});
 		});
 	</script>
 
@@ -66,7 +80,30 @@
 		<b>API Key</b> <input id="key" type=text value="">
 		<b>Base ID</b> <input id="base" type=text value="">
 		<b>Table Name</b> <input id="table" type=text value="">
-		<input type=button value="Save &amp; Sync" onClick="saveCookies();i = 0;load_card('front','slide')">
+
+		<!-- READ TO ME CHECKBOX, SPEED SLIDER AND TEST -->
+		<p>
+		<label>
+		   <input type="checkbox" id="read2me">Read to me
+		</label>
+		</p>
+
+		<div id="t2s" style="display:none;">
+		<p>
+			Voice
+		<select id="lang">
+			<option value="en-US" SELECTED>US</option>
+			<option value="en-GB">UK</option>
+		</select>
+
+		Speed
+		<input type="range" id="rate" value="1" min="0.5" max="2" step="0.25"/>
+	</p>
+		</div>
+
+		<br/>
+		<input type=button value="Save &amp; Sync" onClick="saveCookies();i = 0;load_card('front','slide')"/>
+
 	</div>
 </div>
 
@@ -177,15 +214,36 @@
 		if (readCookie("table")) {
 			$("#table").val(readCookie("table"));
 		}
+		if (readCookie("read")) {
+			if(readCookie("read")=="true") {
+					$( "#read2me" ).prop( "checked", true ).checkboxradio('refresh');
+					$(t2s).show();
+			} else {
+					$(t2s).hide();
+					$( "#read2me" ).prop( "checked", false ).checkboxradio('refresh');
+			}
+		}
+		if (readCookie("lang")) {
+			$("#lang").val(readCookie("lang")).selectmenu('refresh');;
+		}
+		if (readCookie("rate")) {
+			$("#rate").val(readCookie("rate")).slider().slider("refresh");
+		}
 	}
 
 	function saveCookies() {
 		key = $("#key").val().trim();
 		base = $("#base").val().trim();
 		table = $("#table").val().trim();
+		read = $( "#read2me" ).prop( "checked" );
+		lang = $("#lang").val();
+		rate = $("#rate").val();
 		createCookie("key",key,365*100);
 		createCookie("base",base,365*100);
 		createCookie("table",table,365*100);
+		createCookie("read",read,365*100);
+		createCookie("lang",lang,365*100);
+		createCookie("rate",rate,365*100);
 	}
 
 
@@ -424,6 +482,9 @@
 					//$("#label").html(label);
 					//document.title = label;
 					$.mobile.loading("hide");
+					if (readCookie("read")=="true") {
+						talk(label+"?");
+					}
 				}
 				//check_written();
 			} else {
@@ -537,6 +598,9 @@
 
 			  work = 0;
 				$.mobile.loading("hide");
+				if (readCookie("read")=="true") {
+    			talk($('#front_content').val()+'\nDo you see the following issues? '+label+"?");
+				}
 			}
 
     }).catch(function(error){
@@ -666,6 +730,87 @@
 			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
 			//check_written(last,write_this);
     })
+	}
+
+
+
+
+	var voices = window.speechSynthesis.getVoices();
+
+	var sayit = function (sentences,i)
+	{
+	    var msg = new SpeechSynthesisUtterance();
+
+	    msg.voiceURI = 'native';
+	    msg.volume = 1; // 0 to 1
+	    msg.rate = $('#rate').val(); // 0.1 to 10
+	    msg.pitch = 1; //0 to 2
+	    msg.lang = $('#lang').val();
+	    msg.onstart = function (event) {
+	//        console.log("started");
+
+			var textwithhighlight = "";
+			for (var j=0;j< i;j++){
+				if (sentences[j]) {
+					textwithhighlight = textwithhighlight + sentences[j];
+				}
+			}
+			if (sentences[i]) {
+				textwithhighlight = textwithhighlight + "<span style='background:yellow'>" + sentences[i]+"</span>";
+			}
+			for (var k=i+1;k<= sentences.length;k++){
+				if (sentences[k]) {
+					textwithhighlight = textwithhighlight + sentences[k];
+				}
+			}
+			console.log(sentences[i]);
+	//		$('#readhtml').html(textwithhighlight);
+	//		console.log(textwithhighlight);
+	    };
+	    msg.onend = function(event) {
+			if (i == sentences.length-1) {
+				$('#vset').show();$('#speak').show();$('#pause').hide();$('#resume').hide();$('#stop').hide();
+			}
+		//        console.log('Finished in ' + event.elapsedTime + ' seconds.');
+	    };
+	    msg.onerror = function(event)
+	    {
+	        console.log('Errored ' + event);
+	    }
+	    msg.onpause = function (event)
+	    {
+	        console.log('paused ' + event);
+	    }
+	    msg.onboundary = function (event)
+	    {
+	        console.log('onboundary ' + event);
+	    }
+	    return msg;
+	}
+
+	var talk = function (pagetext) {
+
+		speechSynthesis.cancel(); // if it errors, this clears out the error.
+		pagetext = pagetext.replace(/\n+/g, "<break>");
+		pagetext = pagetext.replace(/(,)\s+("|â€œ)/g, myReplace);
+		pagetext = pagetext.replace(/(\.|!|\?)\s*([A-Z]|"|â€œ)/g, myReplace);
+		pagetext = pagetext.replace(/(--|;)\s*([A-Za-z])/g, myReplace);
+		function myReplace(str, group1, group2) {
+			return group1 + " <break>" + group2;
+		}
+
+		//console.log(pagetext);
+
+		var sentences = "";
+	    var sentences = pagetext.split("<break>");
+
+	    for (var i=0;i< sentences.length;i++)
+	    {
+			var toSay = sayit(sentences,i);
+			toSay.text = sentences[i];
+			speechSynthesis.speak(toSay);
+	    }
+
 	}
 
 
