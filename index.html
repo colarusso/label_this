@@ -57,7 +57,7 @@
 <body id="body" onLoad="loadCookies();">
 
 <div data-role="page" id="settings">
-	<div data-role="header" data-id="myheader" data-theme="b">
+	<div data-role="header" data-position="fixed" data-id="myheader" data-theme="b">
 		<a href="#info" data-iconpos="notext" data-icon="info" data-transition="slide" data-direction="reverse"></a>
 		<h1>Settings</h1>
 		<a href="#" onClick="saveCookies();i = 0;load_card('front','slide')" data-iconpos="notext" data-icon="home" data-transition="slide" class="ui-btn-right"></a>
@@ -71,26 +71,32 @@
 </div>
 
 <div data-role="page" id="front">
-	<div class="ui-header ui-bar-b" data-role="header" data-id="myheader" data-theme="b">
+	<div class="ui-header ui-bar-b" data-role="header" data-position="fixed" data-id="myheader" data-theme="b">
 		<a href="#settings" class="ui-link ui-btn-left ui-btn ui-icon-gear ui-btn-icon-notext ui-shadow ui-corner-all" data-iconpos="notext" data-icon="gear" data-direction="reverse" data-transition="slide"></a>
 		<h1 class="ui-title"><span id="label">Loading...</span>?</h1>
 		<a id="tag" href="https://taxonomy.legal/" target="_blank" data-iconpos="notext" data-icon="tag" data-transition="slide" class="ui-btn-right"></a>
+		<div style="width:100%;height:10px;background:#ddd;">
+			<div id="progress" style="float:left;width:0%;height:10px;background:#19c0fc;"></div>
+		</div>
+
 	</div>
-	<div id="front_content" data-role="content" class="card ui-content">
+	<div  data-role="content" class="card ui-content">
+		<span id="text_id" style='color:red;font-size:14px;line-height:18px;'></span>
+		<textarea id="front_content" style="white-space: pre-wrap;" onChange="text_dirty=1;"></textarea>
 	</div>
 	<div id="myfooter" data-role="footer" data-id="myfooter" data-position="fixed" data-tap-toggle="false" class="nav-glyphish-example" style="display:box;" data-theme="b">
 		<div data-role="navbar" data-grid="b">
 			<ul>
 				<li><a href="#" id="voteup" data-icon="custom" onClick="write_card(1,0);">Yes</a></li>
 				<li><a href="#" id="votedown" data-icon="custom" onClick="write_card(0,1);">No</a></li>
-				<li><a href="#" id="skip" data-icon="arrow-r" onClick="write_card(0,0);">Skip</a></li>
+				<li><a href="#" id="next" data-icon="arrow-r" onClick="write_card(0,0);">Skip</a></li>
 			</ul>
 		</div>
 	</div>
 </div>
 
 <div data-role="page" id="info">
-	<div data-role="header" data-id="myheader" data-theme="b">
+	<div data-role="header" data-position="fixed" data-id="myheader" data-theme="b">
 		<h1>About</h1>
 		<a href="#settings" data-iconpos="notext" data-icon="carat-r" data-transition="slide" class="ui-btn-right"></a>
 	</div>
@@ -131,8 +137,10 @@
 	var level_3_i = 0;
   var label = NSMI["labels"][level_0_i]["Title"];
 	var code = NSMI["labels"][level_0_i]["Code"];
+	var progress = 0;
 
 	var text_id = "";
+	var text_dirty;
 
 	var i = 0;
 	var afew = (new Date).getTime();
@@ -213,6 +221,7 @@
 				  console.log(response);
 				}
 				work = 0;
+				text_dirty = 0;
 
 				var load_next = 0;
 				var fresh_pass = 1;
@@ -221,7 +230,7 @@
 					write_this = 0;
 				}
 
-				if (level == 0 /*&& load_next == 0*/) {
+				if (level == 0 && write_this >= 0 /*&& load_next == 0*/) {
 					if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"])) {
 						level = 1;
 						level_1_i = 0;
@@ -237,7 +246,7 @@
 					}
 				}
 
-				if (level == 1 && fresh_pass==1) {
+				if (level == 1 && fresh_pass==1 && write_this >= 0) {
 					if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"])) {
 						level = 2;
 						level_2_i = 0;
@@ -260,7 +269,7 @@
 					}
 				}
 
-				if (level == 2 && fresh_pass==1) {
+				if (level == 2 && fresh_pass==1 && write_this >= 0) {
 					if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"])) {
 						level = 3;
 						level_3_i = 0;
@@ -290,7 +299,7 @@
 					}
 				}
 
-				if (level == 3 && fresh_pass==1) {
+				if (level == 3 && fresh_pass==1 && write_this >= 0) {
 					if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i + 1])) {
 						level_3_i += 1;
 						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Title"];
@@ -323,16 +332,51 @@
 
 				$('#tag').attr("href", "https://taxonomy.legal/term/"+code);
 
-				if (debug==1) {
-					console.log("Level indices: "+level_0_i, level_1_i, level_2_i, level_3_i)
+				var prog_0 = (level_0_i/NSMI["labels"].length);
+				var prog_1 = 0;
+				var prog_2 = 0;
+				var prog_3 = 0;
+
+				if (level == 0) {
+					progress = 	(level_0_i/NSMI["labels"].length);
+				} else if (level ==1) {
+					progress = 	(level_0_i/NSMI["labels"].length) +
+											( (level_1_i+1)/NSMI["labels"][level_0_i]["children"].length ) * (1/(NSMI["labels"].length));
+				} else if (level == 2) {
+					progress = 	(level_0_i/NSMI["labels"].length) +
+											( (level_1_i+1)/NSMI["labels"][level_0_i]["children"].length ) * (1/(NSMI["labels"].length)) +
+											( (level_2_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) ;
+				} else if (level == 3) {
+					progress = 	(level_0_i/NSMI["labels"].length) +
+											( (level_1_i+1)/NSMI["labels"][level_0_i]["children"].length ) * (1/(NSMI["labels"].length)) +
+											( (level_2_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) +
+											( (level_3_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) * (1/(NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length )) ;
 				}
 
+				/*
+
+				if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"])) {
+					prog_3 = ( (level_3_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"].length ) / NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length;
+				}
+				*/
+
+				//progress = prog_0+prog_1+prog_2+prog_3;
+
+				if (debug==1) {
+					console.log("Level indices: ",level,level_0_i, level_1_i, level_2_i, level_3_i)
+					console.log("Progress: ",progress,"Parts:","\n",prog_0,"\n",prog_1,"\n",prog_2,"\n",prog_3)
+				}
+
+				$('#progress').width(progress*100+"%");
+
 				$("#label").html(label);
+				document.title = label;
 
 				if (load_next==1) {
 					load_api_data("#front")
 				} else {
-					$("#label").html(label);
+					//$("#label").html(label);
+					//document.title = label;
 					$.mobile.loading("hide");
 				}
 				//check_written();
@@ -439,7 +483,11 @@
 				get_record(text_id,$("#table").val().trim() + "_2");
 
 			  $("#label").html(label);
-			  $("#front_content").html(text);
+			  //$("#front_content").html("<span style='color:red;font-size:14px;line-height:18px;'>ID: "+text_id+"</span><br/>"+text.replace(/\n|\r/, "<br/>"));
+				$("#text_id").html("ID: "+text_id);
+				$('#progress').width("0%");
+				$("#front_content").val(text).css('height', 'auto').textinput( "refresh" ).resize();
+				text_dirty = 0;
 
 			  work = 0;
 				$.mobile.loading("hide");
@@ -490,6 +538,10 @@
 		last = (new Date).getTime();
 		//get_record(text_id,table);
 
+		if (text_dirty==1){
+			update_text();
+		}
+
 		if (code <= fivehundreth){
 			table = $("#table").val().trim() + "_1";
 			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
@@ -498,8 +550,6 @@
 			apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record_2;
 		}
 		console.log("write:"+table,text_id);
-
-
 
 		if (up==1) {
 			write_this = "1";
@@ -526,6 +576,43 @@
 				console.log(response);
 			}
 			check_written(last,write_this);
+    }).catch(function(error){
+    	console.log(error)
+      alert("There was a problem writing to your Airtable. ("+error+")");
+			$.mobile.loading("hide");
+			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
+			//check_written(last,write_this);
+    })
+	}
+
+	function update_text() {
+		app_id = $("#base").val().trim();
+		app_key = $("#key").val().trim();
+
+		last = (new Date).getTime();
+		//get_record(text_id,table);
+
+		table = $("#table").val().trim() + "_1";
+  	apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
+		console.log("write:"+table,text_id);
+
+		work = 1;
+
+		console.log(table,record,code,last,apicall);
+
+		axios.patch(
+		 	apicall,
+			{  "fields": {  "full_text" : $('#front_content').val(), "last": last } },
+      {
+          headers: { Authorization: "Bearer "+ app_key}
+      }
+    ).then(function(response){
+			if (debug==1) {
+				console.log("---Write Data---");
+				console.log(apicall);
+				console.log(response);
+			}
+			check_written(last,-1);
     }).catch(function(error){
     	console.log(error)
       alert("There was a problem writing to your Airtable. ("+error+")");
