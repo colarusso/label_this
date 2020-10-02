@@ -485,7 +485,7 @@
 					//$("#label").html(label);
 					//document.title = label;
 					$.mobile.loading("hide");
-					if (readCookie("read")=="true") {
+					if (readCookie("read")=="true" && progress > 0) {
 						talk(label+"?");
 					}
 				}
