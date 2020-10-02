@@ -790,14 +790,14 @@
 
 	var talk = function (pagetext) {
 
+		function myReplace(str, group1, group2) {
+			return group1 + " <break>" + group2;
+		}
 		speechSynthesis.cancel(); // if it errors, this clears out the error.
 		pagetext = pagetext.replace(/\n+/g, "<break>");
 		pagetext = pagetext.replace(/(,)\s+("|â€œ)/g, myReplace);
 		pagetext = pagetext.replace(/(\.|!|\?)\s*([A-Z]|"|â€œ)/g, myReplace);
 		pagetext = pagetext.replace(/(--|;)\s*([A-Za-z])/g, myReplace);
-		function myReplace(str, group1, group2) {
-			return group1 + " <break>" + group2;
-		}
 
 		//console.log(pagetext);
 
