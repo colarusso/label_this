@@ -135,6 +135,7 @@
 	var level_1_i = 0;
 	var level_2_i = 0;
 	var level_3_i = 0;
+	var level_4_i = 0;
   var label = NSMI["labels"][level_0_i]["Title"];
 	var code = NSMI["labels"][level_0_i]["Code"];
 	var progress = 0;
@@ -274,8 +275,8 @@
 						level = 3;
 						level_3_i = 0;
 						fresh_pass = 0;
-						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Title"];
-						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Code"];
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Code"];
 					} else if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i + 1])) {
 						level_2_i += 1;
 						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Title"];
@@ -300,7 +301,13 @@
 				}
 
 				if (level == 3 && fresh_pass==1 && write_this >= 0) {
-					if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i + 1])) {
+					if (write_this==1 && Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["children"])) {
+						level = 4;
+						level_4_i = 0;
+						fresh_pass = 0;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["children"][level_4_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["children"][level_4_i]["Code"];
+					} else if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i + 1])) {
 						level_3_i += 1;
 						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Title"];
 						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Code"];
@@ -330,12 +337,45 @@
 					}
 				}
 
-				$('#tag').attr("href", "https://taxonomy.legal/term/"+code);
+				if (level == 4 && fresh_pass==1 && write_this >= 0) {
+					if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["children"][level_4_i + 1])) {
+						level_4_i += 1;
+						label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["children"][level_4_i]["Title"];
+						code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["children"][level_4_i]["Code"];
+					} else {
+						level = 3;
+						if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i + 1])) {
+							level_3_i += 1;
+							label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Title"];
+							code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["Code"];
+						} else {
+							level = 2;
+							if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i + 1])) {
+								level_2_i += 1;
+								label = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Title"];
+								code = NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["Code"];
+							} else {
+								level = 1;
+								if (Boolean(NSMI["labels"][level_0_i]["children"][level_1_i + 1])) {
+									level_1_i += 1;
+									label = NSMI["labels"][level_0_i]["children"][level_1_i]["Title"];
+									code = NSMI["labels"][level_0_i]["children"][level_1_i]["Code"];
+								} else {
+									level = 0;
+									if (Boolean(NSMI["labels"][level_0_i + 1])) {
+										level_0_i += 1;
+										label = NSMI["labels"][level_0_i]["Title"];
+										code = NSMI["labels"][level_0_i]["Code"];
+									} else {
+										load_next = 1;
+									}
+								}
+							}
+						}
+					}
+				}
 
-				var prog_0 = (level_0_i/NSMI["labels"].length);
-				var prog_1 = 0;
-				var prog_2 = 0;
-				var prog_3 = 0;
+				$('#tag').attr("href", "https://taxonomy.legal/term/"+code);
 
 				if (level == 0) {
 					progress = 	(level_0_i/NSMI["labels"].length);
@@ -351,6 +391,12 @@
 											( (level_1_i+1)/NSMI["labels"][level_0_i]["children"].length ) * (1/(NSMI["labels"].length)) +
 											( (level_2_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) +
 											( (level_3_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) * (1/(NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length )) ;
+				} else if (level == 4) {
+					progress = 	(level_0_i/NSMI["labels"].length) +
+											( (level_1_i+1)/NSMI["labels"][level_0_i]["children"].length ) * (1/(NSMI["labels"].length)) +
+											( (level_2_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) +
+											( (level_3_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) * (1/(NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length )) +
+											( (level_4_i+1)/NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"][level_3_i]["children"].length ) * (1/(NSMI["labels"].length)) * (1/(NSMI["labels"][level_0_i]["children"].length)) * (1/(NSMI["labels"][level_0_i]["children"][level_1_i]["children"].length )) * (1/(NSMI["labels"][level_0_i]["children"][level_1_i]["children"][level_2_i]["children"].length ));
 				}
 
 				/*
@@ -363,8 +409,8 @@
 				//progress = prog_0+prog_1+prog_2+prog_3;
 
 				if (debug==1) {
-					console.log("Level indices: ",level,level_0_i, level_1_i, level_2_i, level_3_i)
-					console.log("Progress: ",progress,"Parts:","\n",prog_0,"\n",prog_1,"\n",prog_2,"\n",prog_3)
+					console.log("Level: ",level," Indices:",level_0_i, level_1_i, level_2_i, level_3_i)
+					console.log("Progress: ",progress)
 				}
 
 				$('#progress').width(progress*100+"%");
