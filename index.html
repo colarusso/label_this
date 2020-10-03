@@ -790,14 +790,26 @@
 	function back() {
 		console.log("Back:",level_arr.length,level_arr);
 
-		level_arr.pop();
-		level_0_i_arr.pop();
-		level_1_i_arr.pop();
-		level_2_i_arr.pop();
-		level_3_i_arr.pop();
-		level_4_i_arr.pop();
-		label_arr.pop();
-		code_arr.pop();
+		if (level_arr.length <=1) {
+			console.log("ZeroB");
+			level_arr = [0];
+			level_0_i_arr = [-1];
+			level_1_i_arr = [0];
+			level_2_i_arr = [0];
+			level_3_i_arr = [0];
+			level_4_i_arr = [0];
+			label = NSMI["labels"][0]["Title"];
+			code = NSMI["labels"][0]["Code"];
+		} else {
+			level_arr.pop();
+			level_0_i_arr.pop();
+			level_1_i_arr.pop();
+			level_2_i_arr.pop();
+			level_3_i_arr.pop();
+			level_4_i_arr.pop();
+			label_arr.pop();
+			code_arr.pop();
+		}
 
 		level = level_arr[level_arr.length - 1];
 		level_0_i = level_0_i_arr[level_0_i_arr.length - 1];
@@ -829,6 +841,7 @@
 			code_arr.pop();
 		}
 
+		// get variables for up and down and pass those
 		write_card(0,0);
 
 	}
