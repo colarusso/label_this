@@ -100,7 +100,7 @@
 		<input type="range" id="rate" value="1" min="0.5" max="2" step="0.25"/>
 	</p>
 	<p>
-		<input type=button value="Test text to speech" onClick="talk('This is a test.')"/>
+		<input type=button value="Test text to speech" onClick="talk('Testing, testing, one, two, three.')"/>
 	</p>
 		</div>
 
@@ -171,6 +171,8 @@
 	var level_2_i = 0;
 	var level_3_i = 0;
 	var level_4_i = 0;
+  var label = NSMI["labels"][level_0_i]["Title"];
+	var code = NSMI["labels"][level_0_i]["Code"];
 
 	var level_arr = [];
 	var level_0_i_arr = [];
@@ -178,9 +180,9 @@
 	var level_2_i_arr = [];
 	var level_3_i_arr = [];
 	var level_4_i_arr = [];
+	var label_arr = []
+	var code_arr = []
 
-  var label = NSMI["labels"][level_0_i]["Title"];
-	var code = NSMI["labels"][level_0_i]["Code"];
 	var progress = 0;
 
 	var text_id = "";
@@ -257,6 +259,7 @@
 		if (work == 0) {
 			load_card("front","slideup");
 		} else if (work == 1) {
+
 			if ($.mobile.loading().is(':hidden')) {
 				$.mobile.loading("show");
 			}
@@ -469,13 +472,6 @@
 					console.log("Progress: ",progress)
 				}
 
-				level_arr.push(level);
-				level_0_i_arr.push(level_0_i);
-				level_1_i_arr.push(level_1_i);
-				level_2_i_arr.push(level_2_i);
-				level_3_i_arr.push(level_3_i);
-				level_4_i_arr.push(level_4_i);
-
 				$('#progress').width(progress*100+"%");
 				if (progress>0) {
 					$('#back_button').show();
@@ -490,7 +486,7 @@
 					load_api_data("#front")
 				} else {
 					$.mobile.loading("hide");
-					if (readCookie("read")=="true" && progress > 0) {
+					if (readCookie("read")=="true") {
 						talk(label+"?");
 					}
 				}
@@ -557,6 +553,16 @@
 		level_4_i = 0;
 		label = NSMI["labels"][level_0_i]["Title"];
 		code = NSMI["labels"][level_0_i]["Code"];
+
+		level_arr = [];
+		level_0_i_arr = [];
+		level_1_i_arr = [];
+		level_2_i_arr = [];
+		level_3_i_arr = [];
+		level_4_i_arr = [];
+		label_arr = []
+		code_arr = []
+
 		$('#tag').attr("href", "https://taxonomy.legal/term/"+code);
 
 		var r = $.Deferred();
@@ -604,14 +610,14 @@
 				$('#progress').width("0%");
 				$('#back_button').hide();
 				$("#front_content").val(text).css('height', 'auto').textinput( "refresh" ).resize();
+				if (readCookie("read")=="true") {
+    			talk($('#front_content').val()+'\nDo you see the following? '+label+"?");
+				}
 				text_dirty = 0;
 
 			  work = 0;
 
 				$.mobile.loading("hide");
-				if (readCookie("read")=="true") {
-    			talk($('#front_content').val()+'\nDo you see the following? '+label+"?");
-				}
 			}
 
     }).catch(function(error){
@@ -655,6 +661,15 @@
 	function write_card(up,down) {
 		app_id = $("#base").val().trim();
 		app_key = $("#key").val().trim();
+
+		level_arr.push(level);
+		level_0_i_arr.push(level_0_i);
+		level_1_i_arr.push(level_1_i);
+		level_2_i_arr.push(level_2_i);
+		level_3_i_arr.push(level_3_i);
+		level_4_i_arr.push(level_4_i);
+		label_arr.push(code);
+		code_arr.push(code);
 
 		last = (new Date).getTime();
 		//get_record(text_id,table);
@@ -715,10 +730,8 @@
 
 		table = $("#table").val().trim() + "_1";
   	apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
+
 		console.log("write:"+table,text_id);
-
-		work = 1;
-
 		console.log("Write Card: \n",table,record,code,last,apicall);
 
 		axios.patch(
@@ -741,27 +754,51 @@
 			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
 			//check_written(last,write_this);
     })
+
+		/*----*/
+
+		table = $("#table").val().trim() + "_2";
+		apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record_2;
+
+		console.log("write:"+table,text_id);
+		console.log("Write Card: \n",table,record,code,last,apicall);
+
+		axios.patch(
+		 	apicall,
+			{  "fields": {  "full_text" : $('#front_content').val(), "last": last } },
+      {
+          headers: { Authorization: "Bearer "+ app_key}
+      }
+    ).then(function(response){
+			if (debug==1) {
+				console.log("---Write Data---");
+				console.log(apicall);
+				console.log(response);
+			}
+			check_written(last,-1);
+    }).catch(function(error){
+    	console.log(error)
+      alert("There was a problem writing to your Airtable. ("+error+")");
+			$.mobile.loading("hide");
+			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
+			//check_written(last,write_this);
+    })
+
+
 	}
 
 	function back() {
 		console.log("Back:",level_arr.length,level_arr);
 
-		if (level_arr.length <=1) {
-			console.log("ZeroA");
-			level_arr = [0];
-			level_0_i_arr = [-1];
-			level_1_i_arr = [0];
-			level_2_i_arr = [0];
-			level_3_i_arr = [0];
-			level_4_i_arr = [0];
-		} else {
+
 			level_arr.pop();
 			level_0_i_arr.pop();
 			level_1_i_arr.pop();
 			level_2_i_arr.pop();
 			level_3_i_arr.pop();
 			level_4_i_arr.pop();
-		}
+			label_arr.pop();
+			code_arr.pop();
 
 		level = level_arr[level_arr.length - 1];
 		level_0_i = level_0_i_arr[level_0_i_arr.length - 1];
@@ -769,6 +806,8 @@
 		level_2_i = level_2_i_arr[level_2_i_arr.length - 1];
 		level_3_i = level_3_i_arr[level_3_i_arr.length - 1];
 		level_4_i = level_4_i_arr[level_4_i_arr.length - 1];
+		label = label_arr[label_arr.length - 1];
+		code = code_arr[code_arr.length - 1];
 
 		if (level_arr.length <=1) {
 			console.log("ZeroB");
@@ -778,6 +817,8 @@
 			level_2_i_arr = [0];
 			level_3_i_arr = [0];
 			level_4_i_arr = [0];
+			label = NSMI["labels"][0]["Title"];
+			code = NSMI["labels"][0]["Code"];
 		} else {
 			level_arr.pop();
 			level_0_i_arr.pop();
@@ -785,9 +826,11 @@
 			level_2_i_arr.pop();
 			level_3_i_arr.pop();
 			level_4_i_arr.pop();
+			label_arr.pop();
+			code_arr.pop();
 		}
 
-		write_card("","");
+		write_card(0,0);
 
 	}
 
@@ -803,31 +846,16 @@
 	    msg.pitch = 1; //0 to 2
 	    msg.lang = $('#lang').val();
 	    msg.onstart = function (event) {
-	//        console.log("started");
+			//        console.log("started");
 
-			var textwithhighlight = "";
-			for (var j=0;j< i;j++){
-				if (sentences[j]) {
-					textwithhighlight = textwithhighlight + sentences[j];
-				}
-			}
-			if (sentences[i]) {
-				textwithhighlight = textwithhighlight + "<span style='background:yellow'>" + sentences[i]+"</span>";
-			}
-			for (var k=i+1;k<= sentences.length;k++){
-				if (sentences[k]) {
-					textwithhighlight = textwithhighlight + sentences[k];
-				}
-			}
 			console.log(sentences[i]);
-	//		$('#readhtml').html(textwithhighlight);
-	//		console.log(textwithhighlight);
+
 	    };
 	    msg.onend = function(event) {
 			if (i == sentences.length-1) {
 				$('#vset').show();$('#speak').show();$('#pause').hide();$('#resume').hide();$('#stop').hide();
 			}
-		//        console.log('Finished in ' + event.elapsedTime + ' seconds.');
+			//        console.log('Finished in ' + event.elapsedTime + ' seconds.');
 	    };
 	    msg.onerror = function(event)
 	    {
@@ -846,10 +874,12 @@
 
 	var talk = function (pagetext) {
 
+		speechSynthesis.cancel(); // if it errors, this clears out the error.
+
 		function myReplace(str, group1, group2) {
 			return group1 + " <break>" + group2;
 		}
-		speechSynthesis.cancel(); // if it errors, this clears out the error.
+
 		pagetext = pagetext.replace(/\n+/g, "<break>");
 		pagetext = pagetext.replace(/(,)\s+("|â€œ)/g, myReplace);
 		pagetext = pagetext.replace(/(\.|!|\?)\s*([A-Z]|"|â€œ)/g, myReplace);
@@ -858,14 +888,14 @@
 		//console.log(pagetext);
 
 		var sentences = "";
-	    var sentences = pagetext.split("<break>");
+	  var sentences = pagetext.split("<break>");
 
-	    for (var i=0;i< sentences.length;i++)
-	    {
-			var toSay = sayit(sentences,i);
-			toSay.text = sentences[i];
-			speechSynthesis.speak(toSay);
-	    }
+    for (var i=0;i< sentences.length;i++)
+    {
+		var toSay = sayit(sentences,i);
+		toSay.text = sentences[i];
+		speechSynthesis.speak(toSay);
+    }
 
 	}
 
