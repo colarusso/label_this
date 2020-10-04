@@ -169,7 +169,6 @@
 	var record = "";
 	var record_2 = "";
 
-	var goback = 0;
 	var level = 0;
 	var level_0_i = 0;
 	var level_1_i = 0;
@@ -707,20 +706,22 @@
 		}
 	}
 
-	function write_card(up,down) {
+	function write_card(up,down,goback=0) {
 		app_id = $("#base").val().trim();
 		app_key = $("#key").val().trim();
 
-		level_arr.push(level);
-		level_0_i_arr.push(level_0_i);
-		level_1_i_arr.push(level_1_i);
-		level_2_i_arr.push(level_2_i);
-		level_3_i_arr.push(level_3_i);
-		level_4_i_arr.push(level_4_i);
-		label_arr.push(label);
-		code_arr.push(code);
-		up_arr.push(up);
-		down_arr.push(down);
+		if (goback==0) {
+			level_arr.push(level);
+			level_0_i_arr.push(level_0_i);
+			level_1_i_arr.push(level_1_i);
+			level_2_i_arr.push(level_2_i);
+			level_3_i_arr.push(level_3_i);
+			level_4_i_arr.push(level_4_i);
+			label_arr.push(label);
+			code_arr.push(code);
+			up_arr.push(up);
+			down_arr.push(down);
+		}
 
 		last = (new Date).getTime();
 		//get_record(text_id,table);
@@ -751,6 +752,7 @@
 		if (goback==1) {
 			write_this = "";
 		}
+		console.log("######\n\#######\n",code)
 
 		work = 1;
 
@@ -776,6 +778,7 @@
 			$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
 			//check_written(last,write_this);
     })
+
 	}
 
 	function update_text() {
@@ -847,6 +850,8 @@
 	function back() {
 		console.log("Back:",level_arr.length,level_arr);
 
+		code = code_arr[code_arr.length - 1];
+
 		if (level_arr.length <=1) {
 			console.log("ZeroB");
 			level_arr = [0];
@@ -855,8 +860,8 @@
 			level_2_i_arr = [0];
 			level_3_i_arr = [0];
 			level_4_i_arr = [0];
-			label = NSMI["labels"][0]["Title"];
-			code = NSMI["labels"][0]["Code"];
+			label_arr =[NSMI["labels"][0]["Title"]];
+			code_arr = [NSMI["labels"][0]["Code"]];
 			up_arr = [];
 			down_arr = [];
 		} else {
@@ -878,38 +883,13 @@
 		level_2_i = level_2_i_arr[level_2_i_arr.length - 1];
 		level_3_i = level_3_i_arr[level_3_i_arr.length - 1];
 		level_4_i = level_4_i_arr[level_4_i_arr.length - 1];
-		label = label_arr[label_arr.length - 1];
-		code = code_arr[code_arr.length - 1];
+		//label = label_arr[label_arr.length - 1];
+		//code = code_arr[code_arr.length - 1];
 		up = up_arr[up_arr.length - 1];
 		down = down_arr[down_arr.length - 1];
 
-		if (level_arr.length <=1) {
-			console.log("ZeroB");
-			level_arr = [0];
-			level_0_i_arr = [-1];
-			level_1_i_arr = [0];
-			level_2_i_arr = [0];
-			level_3_i_arr = [0];
-			level_4_i_arr = [0];
-			label = NSMI["labels"][0]["Title"];
-			code = NSMI["labels"][0]["Code"];
-			up_arr = [];
-			down_arr = [];
-		} else {
-			level_arr.pop();
-			level_0_i_arr.pop();
-			level_1_i_arr.pop();
-			level_2_i_arr.pop();
-			level_3_i_arr.pop();
-			level_4_i_arr.pop();
-			label_arr.pop();
-			code_arr.pop();
-			up_arr.pop();
-			down_arr.pop();
-		}
-
 		// get variables for up and down and pass those
-		write_card(up,down);
+		write_card(up,down,1);
 
 	}
 
