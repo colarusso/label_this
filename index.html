@@ -617,7 +617,13 @@
 
 		app_id = $("#base").val().trim();
 		app_key = $("#key").val().trim();
-		table = $("#table").val().trim() + "_1";
+
+		if (code <= fivehundreth){
+			table = $("#table").val().trim() + "_1";
+		} else {
+			table = $("#table").val().trim() + "_2";
+		}
+
 		work = 1;
 
 		if (target == "#front") {
@@ -753,7 +759,6 @@
 			if (goback==1) {
 				write_this = "";
 			}
-			console.log("######\n\#######\n",code)
 
 			work = 1;
 
