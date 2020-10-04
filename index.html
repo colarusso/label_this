@@ -89,20 +89,22 @@
 		</p>
 
 		<div id="t2s" style="display:none;">
-		<p>
-			Voice
-		<select id="lang">
-			<option value="en-US" SELECTED>US</option>
-			<option value="en-GB">UK</option>
-		</select>
+			<p>
+				Voice
+			<select id="lang">
+				<option value="en-US" SELECTED>US</option>
+				<option value="en-GB">UK</option>
+			</select>
 
-		Speed
-		<input type="range" id="rate" value="1" min="0.5" max="2" step="0.25"/>
-	</p>
-	<p>
-		<input type=button value="Test text to speech" onClick="talk('Testing, testing, one, two, three.')"/>
-	</p>
+			Speed
+			<input type="range" id="rate" value="1" min="0.5" max="2" step="0.25"/>
+			</p>
+			<p>
+				<input type=button value="Test text to speech" onClick="talk('Testing, testing, one, two, three.')"/>
+			</p>
 		</div>
+
+		<div id="topics"></div>
 
 		<br/>
 		<input type=button value="Save &amp; Sync" onClick="saveCookies();i = 0;load_card('front','slide')"/>
@@ -123,7 +125,7 @@
 	<div  data-role="content" class="card ui-content">
 		<span id="text_id" style='color:red;font-size:14px;line-height:18px;'></span>
 		<textarea id="front_content" style="white-space: pre-wrap;" onChange="text_dirty=1;"></textarea>
-		<p id="back_button" style="display:none;"><input type="button" value="back" onClick="back();"/></p>
+		<p id="back_button" style="display:none;"><input type="button" value="Go Back One" onClick="back();"/></p>
 	</div>
 	<div id="myfooter" data-role="footer" data-id="myfooter" data-position="fixed" data-tap-toggle="false" class="nav-glyphish-example" style="display:box;" data-theme="b">
 		<div data-role="navbar" data-grid="b">
@@ -156,6 +158,8 @@
 
 <script type="text/javascript">
 
+	var NSMI_full = NSMI;
+
 	var debug = 1;
 
 	var fivehundreth = "MO-12-01-05-00";
@@ -165,6 +169,7 @@
 	var record = "";
 	var record_2 = "";
 
+	var goback = 0;
 	var level = 0;
 	var level_0_i = 0;
 	var level_1_i = 0;
@@ -173,6 +178,8 @@
 	var level_4_i = 0;
   var label = NSMI["labels"][level_0_i]["Title"];
 	var code = NSMI["labels"][level_0_i]["Code"];
+	var up;
+	var down;
 
 	var level_arr = [];
 	var level_0_i_arr = [];
@@ -182,6 +189,8 @@
 	var level_4_i_arr = [];
 	var label_arr = []
 	var code_arr = []
+	var up_arr = []
+	var down_arr = []
 
 	var progress = 0;
 
@@ -213,6 +222,8 @@
 	}
 
 	function loadCookies() {
+		create_topic_list();
+
 		if (readCookie("key")) {
 			$("#key").val(readCookie("key"));
 		}
@@ -237,6 +248,18 @@
 		if (readCookie("rate")) {
 			$("#rate").val(readCookie("rate")).slider().slider("refresh");
 		}
+
+		for (var i = 0; i < NSMI_full["labels"].length; i++) {
+			if (readCookie(NSMI_full["labels"][i]["Code"])) {
+				if (readCookie(NSMI_full["labels"][i]["Code"])=="true") {
+					$( "#"+i ).prop( "checked", true ).checkboxradio('refresh');
+				} else {
+					$( "#"+i ).prop( "checked", false ).checkboxradio('refresh');
+				}
+			}
+		}
+
+
 	}
 
 	function saveCookies() {
@@ -252,8 +275,32 @@
 		createCookie("read",read,365*100);
 		createCookie("lang",lang,365*100);
 		createCookie("rate",rate,365*100);
+
+		for (var i = 0; i < NSMI_full["labels"].length; i++) {
+			createCookie(NSMI_full["labels"][i]["Code"],$( "#"+i ).prop( "checked" ),365*100);
+			console.log(NSMI_full["labels"][i]["Code"],$( "#"+i ).prop( "checked" ),365*100)
+		}
+
+		var selected = [];
+		$('#topics input:checked').each(function() {
+			 selected.push(parseInt($(this).attr('id')));
+		});
+
+		var labels_arr = [];
+		for (var i = 0; i < selected.length; i++) {
+			labels_arr.push(NSMI_full["labels"][selected[i]]);
+		}
+		NSMI = {"labels": labels_arr };
+
 	}
 
+	function create_topic_list(){
+		$("#topics").html('<fieldset data-role="controlgroup"><legend><b>Parent Topics</b><br/> Select topics you would like to label:</legend></fieldset>');
+		for (var i = 0; i < NSMI_full["labels"].length; i++) {
+		    $("fieldset").append('<input type="checkbox" name="' + NSMI["labels"][i]["Code"] + '" id="' + i + '"><label for="' + i + '">' + NSMI["labels"][i]["Title"] + '</label>');
+		}
+		$("#topics").trigger('create');
+	}
 
 	function check_written(last,write_this=null) {
 		if (work == 0) {
@@ -560,8 +607,10 @@
 		level_2_i_arr = [];
 		level_3_i_arr = [];
 		level_4_i_arr = [];
-		label_arr = []
-		code_arr = []
+		label_arr = [];
+		code_arr = [];
+		up_arr = [];
+		down_arr = [];
 
 		$('#tag').attr("href", "https://taxonomy.legal/term/"+code);
 
@@ -668,8 +717,10 @@
 		level_2_i_arr.push(level_2_i);
 		level_3_i_arr.push(level_3_i);
 		level_4_i_arr.push(level_4_i);
-		label_arr.push(code);
+		label_arr.push(label);
 		code_arr.push(code);
+		up_arr.push(up);
+		down_arr.push(down);
 
 		last = (new Date).getTime();
 		//get_record(text_id,table);
@@ -695,6 +746,12 @@
 			write_this = ""
 		}
 
+		write_this_check = write_this;
+
+		if (goback==1) {
+			write_this = "";
+		}
+
 		work = 1;
 
 		console.log("Write Card: \n",table,record,code,write_this,last,apicall);
@@ -711,7 +768,7 @@
 				console.log(apicall);
 				console.log(response);
 			}
-			check_written(last,write_this);
+			check_written(last,write_this_check);
     }).catch(function(error){
     	console.log(error)
       alert("There was a problem writing to your Airtable. ("+error+")");
@@ -800,6 +857,8 @@
 			level_4_i_arr = [0];
 			label = NSMI["labels"][0]["Title"];
 			code = NSMI["labels"][0]["Code"];
+			up_arr = [];
+			down_arr = [];
 		} else {
 			level_arr.pop();
 			level_0_i_arr.pop();
@@ -809,6 +868,8 @@
 			level_4_i_arr.pop();
 			label_arr.pop();
 			code_arr.pop();
+			up_arr.pop();
+			down_arr.pop();
 		}
 
 		level = level_arr[level_arr.length - 1];
@@ -819,6 +880,8 @@
 		level_4_i = level_4_i_arr[level_4_i_arr.length - 1];
 		label = label_arr[label_arr.length - 1];
 		code = code_arr[code_arr.length - 1];
+		up = up_arr[up_arr.length - 1];
+		down = down_arr[down_arr.length - 1];
 
 		if (level_arr.length <=1) {
 			console.log("ZeroB");
@@ -830,6 +893,8 @@
 			level_4_i_arr = [0];
 			label = NSMI["labels"][0]["Title"];
 			code = NSMI["labels"][0]["Code"];
+			up_arr = [];
+			down_arr = [];
 		} else {
 			level_arr.pop();
 			level_0_i_arr.pop();
@@ -839,10 +904,12 @@
 			level_4_i_arr.pop();
 			label_arr.pop();
 			code_arr.pop();
+			up_arr.pop();
+			down_arr.pop();
 		}
 
 		// get variables for up and down and pass those
-		write_card(0,0);
+		write_card(up,down);
 
 	}
 
