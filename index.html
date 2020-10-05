@@ -618,12 +618,7 @@
 		app_id = $("#base").val().trim();
 		app_key = $("#key").val().trim();
 
-		if (code <= fivehundreth){
-			table = $("#table").val().trim() + "_1";
-		} else {
-			table = $("#table").val().trim() + "_2";
-		}
-
+		table = $("#table").val().trim() + "_1";
 		work = 1;
 
 		if (target == "#front") {
@@ -740,9 +735,11 @@
 			if (code <= fivehundreth){
 				table = $("#table").val().trim() + "_1";
 				apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record;
+				apicall_2 = "https://api.airtable.com/v0/"+app_id+"/"+$("#table").val().trim() + "_2"+"/"+record_2;
 			} else {
 				table = $("#table").val().trim() + "_2";
 				apicall = "https://api.airtable.com/v0/"+app_id+"/"+table+"/"+record_2;
+				apicall_2 = "https://api.airtable.com/v0/"+app_id+"/"+$("#table").val().trim() + "_1"+"/"+record;
 			}
 			console.log("write:"+table,text_id);
 
@@ -784,6 +781,25 @@
 				$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
 				//check_written(last,write_this);
 	    })
+
+			/* -- Write to Last on other table --			*/
+
+			axios.patch(
+				apicall_2,
+				{  "fields": { "last": last } },
+				{
+						headers: { Authorization: "Bearer "+ app_key}
+				}
+			).then(function(response){
+				//check_written(last,"");
+			}).catch(function(error){
+				console.log(error)
+				alert("There was a problem writing to your Airtable. ("+error+")");
+				$.mobile.loading("hide");
+				$.mobile.changePage($('#settings'), { transition: "slide", reverse: "true"})
+			})
+
+
 		}
 	}
 
